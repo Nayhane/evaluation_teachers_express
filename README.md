@@ -1,6 +1,6 @@
-# Express Games API
+# Express batchs API
 
-RESTful Express API for Games on top of MongoDB.
+RESTful Express API for batchs on top of MongoDB.
 
 ## Authentication
 
@@ -28,18 +28,18 @@ Authorization: Bearer <token here>
 
 _**Note**: See `db/seed.js` for an example._
 
-## Games
+## batchs
 
-**Note:** See `models/game.js` for the Game schema attributes.
+**Note:** See `models/batch.js` for the batch schema attributes.
 
 | HTTP Verb | Path | Description |
 |-----------|------|--------------|
-| `GET` | `/games` | Retrieve all games |
-| `POST` | `/games` | Create a game* |
-| `GET` | `/games/:id` | Retrieve a single game by it's `id` |
-| `PUT` | `/games/:id` | Update a game with a specific `id`* |
-| `PATCH` | `/games/:id` | Patch (partial update) a game with a specific `id`* |
-| `DELETE` | `/games/:id` | Destroy a single game by it's `id`* |
+| `GET` | `/batchs` | Retrieve all batchs |
+| `POST` | `/batchs` | Create a batch* |
+| `GET` | `/batchs/:id` | Retrieve a single batch by it's `id` |
+| `PUT` | `/batchs/:id` | Update a batch with a specific `id`* |
+| `PATCH` | `/batchs/:id` | Patch (partial update) a batch with a specific `id`* |
+| `DELETE` | `/batchs/:id` | Destroy a single batch by it's `id`* |
 | | | _* Needs authentication_ |
 
-_**Note**: Run `yarn run seed` to seed some initial games._
+_**Note**: Run `yarn run seed` to seed some initial batchs._
