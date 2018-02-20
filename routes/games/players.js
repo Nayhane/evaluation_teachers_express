@@ -1,26 +1,26 @@
-// routes/games.js
+// routes/batchs.js
 const router = require('express').Router()
 const passport = require('../../config/auth')
-const { Game, User } = require('../../models')
+const { batch, User } = require('../../models')
 
 const authenticate = passport.authorize('jwt', { session: false })
 
-const loadGame = (req, res, next) => {
+const loadbatch = (req, res, next) => {
   const id = req.params.id
 
-  Game.findById(id)
-    .then((game) => {
-      req.game = game
+  batch.findById(id)
+    .then((batch) => {
+      req.batch = batch
       next()
     })
     .catch((error) => next(error))
 }
 
 const getPlayers = (req, res, next) => {
-  Promise.all(req.game.players.map(player => User.findById(player.userId)))
+  Promise.all(req.batch.players.map(player => User.findById(player.userId)))
     .then((users) => {
       // Combine player data and user's name
-      req.players = req.game.players.map((player) => {
+      req.players = req.batch.players.map((player) => {
         const { name } = users
           .filter((u) => u._id.toString() === player.userId.toString())[0]
 
@@ -37,28 +37,28 @@ const getPlayers = (req, res, next) => {
 
 module.exports = io => {
   router
-    .get('/games/:id/players', loadGame, getPlayers, (req, res, next) => {
-      if (!req.game || !req.players) { return next() }
+    .get('/batchs/:id/players', loadbatch, getPlayers, (req, res, next) => {
+      if (!req.batch || !req.players) { return next() }
       res.json(req.players)
     })
 
-    .post('/games/:id/players', authenticate, loadGame, (req, res, next) => {
-      if (!req.game) { return next() }
+    .post('/batchs/:id/players', authenticate, loadbatch, (req, res, next) => {
+      if (!req.batch) { return next() }
 
       const userId = req.account._id
 
-      if (req.game.players.filter((p) => p.userId.toString() === userId.toString()).length > 0) {
-        const error = Error.new('You already joined this game!')
+      if (req.batch.players.filter((p) => p.userId.toString() === userId.toString()).length > 0) {
+        const error = Error.new('You already joined this batch!')
         error.status = 401
         return next(error)
       }
 
       // Add the user to the players
-      req.game.players.push({ userId, pairs: [] })
+      req.batch.players.push({ userId, pairs: [] })
 
-      req.game.save()
-        .then((game) => {
-          req.game = game
+      req.batch.save()
+        .then((batch) => {
+          req.batch = batch
           next()
         })
         .catch((error) => next(error))
@@ -68,31 +68,31 @@ module.exports = io => {
     // Respond with new player data in JSON and over socket
     (req, res, next) => {
       io.emit('action', {
-        type: 'GAME_PLAYERS_UPDATED',
+        type: 'batch_PLAYERS_UPDATED',
         payload: {
-          game: req.game,
+          batch: req.batch,
           players: req.players
         }
       })
       res.json(req.players)
     })
 
-    .delete('/games/:id/players', authenticate, (req, res, next) => {
-      if (!req.game) { return next() }
+    .delete('/batchs/:id/players', authenticate, (req, res, next) => {
+      if (!req.batch) { return next() }
 
       const userId = req.account._id
-      const currentPlayer = req.game.players.filter((p) => p.userId.toString() === userId.toString())[0]
+      const currentPlayer = req.batch.players.filter((p) => p.userId.toString() === userId.toString())[0]
 
       if (!currentPlayer) {
-        const error = Error.new('You are not a player of this game!')
+        const error = Error.new('You are not a player of this batch!')
         error.status = 401
         return next(error)
       }
 
-      req.game.players = req.game.players.filter((p) => p.userId.toString() !== userId.toString())
-      req.game.save()
-        .then((game) => {
-          req.game = game
+      req.batch.players = req.batch.players.filter((p) => p.userId.toString() !== userId.toString())
+      req.batch.save()
+        .then((batch) => {
+          req.batch = batch
           next()
         })
         .catch((error) => next(error))
@@ -103,9 +103,9 @@ module.exports = io => {
     // Respond with new player data in JSON and over socket
     (req, res, next) => {
       io.emit('action', {
-        type: 'GAME_PLAYERS_UPDATED',
+        type: 'batch_PLAYERS_UPDATED',
         payload: {
-          game: req.game,
+          batch: req.batch,
           players: req.players
         }
       })

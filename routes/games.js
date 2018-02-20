@@ -1,34 +1,34 @@
-// routes/games.js
+// routes/batchs.js
 const router = require('express').Router()
 const passport = require('../config/auth')
-const { Game } = require('../models')
+const { batch } = require('../models')
 const utils = require('../lib/utils')
 
 const authenticate = passport.authorize('jwt', { session: false })
 
 module.exports = io => {
   router
-    .get('/games', (req, res, next) => {
-      Game.find()
-        // Newest games first
-        .sort({ createdAt: -1 })
+    .get('/batchs', (req, res, next) => {
+      batch.find()
+        // Newest batchs first
+        .sort({ startedAt: -1 })
         // Send the data in JSON format
-        .then((games) => res.json(games))
+        .then((batchs) => res.json(batchs))
         // Throw a 500 error if something goes wrong
         .catch((error) => next(error))
     })
-    .get('/games/:id', (req, res, next) => {
+    .get('/batchs/:id', (req, res, next) => {
       const id = req.params.id
 
-      Game.findById(id)
-        .then((game) => {
-          if (!game) { return next() }
-          res.json(game)
+      batch.findById(id)
+        .then((batch) => {
+          if (!batch) { return next() }
+          res.json(batch)
         })
         .catch((error) => next(error))
     })
-    .post('/games', authenticate, (req, res, next) => {
-      const newGame = {
+    .post('/batchs', authenticate, (req, res, next) => {
+      const newbatch = {
         userId: req.account._id,
         players: [{
           userId: req.account._id,
@@ -38,58 +38,58 @@ module.exports = io => {
           .map((symbol) => ({ visible: false, symbol }))
       }
 
-      Game.create(newGame)
-        .then((game) => {
+      batch.create(newbatch)
+        .then((batch) => {
           io.emit('action', {
-            type: 'GAME_CREATED',
-            payload: game
+            type: 'batch_CREATED',
+            payload: batch
           })
-          res.json(game)
+          res.json(batch)
         })
         .catch((error) => next(error))
     })
-    .put('/games/:id', authenticate, (req, res, next) => {
+    .put('/batchs/:id', authenticate, (req, res, next) => {
       const id = req.params.id
-      const updatedGame = req.body
+      const updatedbatch = req.body
 
-      Game.findByIdAndUpdate(id, { $set: updatedGame }, { new: true })
-        .then((game) => {
+      batch.findByIdAndUpdate(id, { $set: updatedbatch }, { new: true })
+        .then((batch) => {
           io.emit('action', {
-            type: 'GAME_UPDATED',
-            payload: game
+            type: 'batch_UPDATED',
+            payload: batch
           })
-          res.json(game)
+          res.json(batch)
         })
         .catch((error) => next(error))
     })
-    .patch('/games/:id', authenticate, (req, res, next) => {
+    .patch('/batchs/:id', authenticate, (req, res, next) => {
       const id = req.params.id
-      const patchForGame = req.body
+      const patchForbatch = req.body
 
-      Game.findById(id)
-        .then((game) => {
-          if (!game) { return next() }
+      batch.findById(id)
+        .then((batch) => {
+          if (!batch) { return next() }
 
-          const updatedGame = { ...game, ...patchForGame }
+          const updatedbatch = { ...batch, ...patchForbatch }
 
-          Game.findByIdAndUpdate(id, { $set: updatedGame }, { new: true })
-            .then((game) => {
+          batch.findByIdAndUpdate(id, { $set: updatedbatch }, { new: true })
+            .then((batch) => {
               io.emit('action', {
-                type: 'GAME_UPDATED',
-                payload: game
+                type: 'batch_UPDATED',
+                payload: batch
               })
-              res.json(game)
+              res.json(batch)
             })
             .catch((error) => next(error))
         })
         .catch((error) => next(error))
     })
-    .delete('/games/:id', authenticate, (req, res, next) => {
+    .delete('/batchs/:id', authenticate, (req, res, next) => {
       const id = req.params.id
-      Game.findByIdAndRemove(id)
+      batch.findByIdAndRemove(id)
         .then(() => {
           io.emit('action', {
-            type: 'GAME_REMOVED',
+            type: 'batch_REMOVED',
             payload: id
           })
           res.status = 200
