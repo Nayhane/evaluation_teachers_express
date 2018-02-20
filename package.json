@@ -1,7 +1,7 @@
 {
   "name": "memory-batch-api",
   "version": "1.0.0",
-  "description": "API for memory batches",
+  "description": "API for batches",
   "main": "index.js",
   "license": "MIT",
   "engines": {

@@ -1,14 +1,14 @@
 // routes/students.js
 const router = require('express').Router()
-const passport = require('../../config/auth')
-const { student, User } = require('../../models')
+const passport = require('../config/auth')
+const { Student } = require('../models')
 
 const authenticate = passport.authorize('jwt', { session: false })
 
 module.exports = io => {
   router
     .get('/students', (req, res, next) => {
-      student.find()
+      Student.find()
         // Newest students first
         .sort({ startedAt: -1 })
         // Send the data in JSON format
@@ -19,19 +19,20 @@ module.exports = io => {
     .get('/students/:id', (req, res, next) => {
       const id = req.params.id
 
-      student.findById(id)
+      Student.findById(id)
         .then((student) => {
           if (!student) { return next() }
           res.json(student)
         })
         .catch((error) => next(error))
     })
-    .post('/students', authenticate, (req, res, next) => {
-      const newstudent = {
-        userId: req.account._id,
+    .post('/students', (req, res, next) => {
+      const newStudent = {
+        name: req.body.name,
+        photo: req.body.photo,
       }
 
-      student.create(newstudent)
+      Student.create(newStudent)
         .then((student) => {
           io.emit('action', {
             type: 'STUDENT_CREATED',
@@ -43,9 +44,9 @@ module.exports = io => {
     })
     .put('/students/:id', authenticate, (req, res, next) => {
       const id = req.params.id
-      const updatedstudent = req.body
+      const updatedStudent = req.body
 
-      student.findByIdAndUpdate(id, { $set: updatedstudent }, { new: true })
+      Student.findByIdAndUpdate(id, { $set: updatedStudent }, { new: true })
         .then((student) => {
           io.emit('action', {
             type: 'STUDENT_UPDATED',
@@ -57,15 +58,15 @@ module.exports = io => {
     })
     .patch('/students/:id', authenticate, (req, res, next) => {
       const id = req.params.id
-      const patchForstudent = req.body
+      const patchForStudent = req.body
 
-      student.findById(id)
+      Student.findById(id)
         .then((student) => {
           if (!student) { return next() }
 
-          const updatedstudent = { ...student, ...patchForstudent }
+          const updatedStudent = { ...student, ...patchForStudent }
 
-          student.findByIdAndUpdate(id, { $set: updatedstudent }, { new: true })
+          Student.findByIdAndUpdate(id, { $set: updatedStudent }, { new: true })
             .then((student) => {
               io.emit('action', {
                 type: 'STUDENT_UPDATED',
@@ -79,7 +80,7 @@ module.exports = io => {
     })
     .delete('/students/:id', authenticate, (req, res, next) => {
       const id = req.params.id
-      student.findByIdAndRemove(id)
+      Student.findByIdAndRemove(id)
         .then(() => {
           io.emit('action', {
             type: 'STUDENT_REMOVED',

@@ -1,7 +1,7 @@
 // routes/batches.js
 const router = require('express').Router()
 const passport = require('../config/auth')
-const { batch } = require('../models')
+const { Batch } = require('../models')
 const utils = require('../lib/utils')
 
 const authenticate = passport.authorize('jwt', { session: false })
@@ -9,7 +9,7 @@ const authenticate = passport.authorize('jwt', { session: false })
 module.exports = io => {
   router
     .get('/batches', (req, res, next) => {
-      batch.find()
+      Batch.find()
         // Newest batches first
         .sort({ startedAt: -1 })
         // Send the data in JSON format
@@ -20,7 +20,7 @@ module.exports = io => {
     .get('/batches/:id', (req, res, next) => {
       const id = req.params.id
 
-      batch.findById(id)
+      Batch.findById(id)
         .then((batch) => {
           if (!batch) { return next() }
           res.json(batch)
@@ -32,7 +32,7 @@ module.exports = io => {
         userId: req.account._id,
       }
 
-      batch.create(newbatch)
+      Batch.create(newbatch)
         .then((batch) => {
           io.emit('action', {
             type: 'BATCH_CREATED',
@@ -46,7 +46,7 @@ module.exports = io => {
       const id = req.params.id
       const updatedbatch = req.body
 
-      batch.findByIdAndUpdate(id, { $set: updatedbatch }, { new: true })
+      Batch.findByIdAndUpdate(id, { $set: updatedbatch }, { new: true })
         .then((batch) => {
           io.emit('action', {
             type: 'BATCH_UPDATED',
@@ -60,7 +60,7 @@ module.exports = io => {
       const id = req.params.id
       const patchForbatch = req.body
 
-      batch.findById(id)
+      Batch.findById(id)
         .then((batch) => {
           if (!batch) { return next() }
 
@@ -80,7 +80,7 @@ module.exports = io => {
     })
     .delete('/batches/:id', authenticate, (req, res, next) => {
       const id = req.params.id
-      batch.findByIdAndRemove(id)
+      Batch.findByIdAndRemove(id)
         .then(() => {
           io.emit('action', {
             type: 'BATCH_REMOVED',
