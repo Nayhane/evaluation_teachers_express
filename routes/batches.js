@@ -1,4 +1,4 @@
-// routes/batchs.js
+// routes/batches.js
 const router = require('express').Router()
 const passport = require('../config/auth')
 const { batch } = require('../models')
@@ -8,16 +8,16 @@ const authenticate = passport.authorize('jwt', { session: false })
 
 module.exports = io => {
   router
-    .get('/batchs', (req, res, next) => {
+    .get('/batches', (req, res, next) => {
       batch.find()
-        // Newest batchs first
+        // Newest batches first
         .sort({ startedAt: -1 })
         // Send the data in JSON format
-        .then((batchs) => res.json(batchs))
+        .then((batches) => res.json(batches))
         // Throw a 500 error if something goes wrong
         .catch((error) => next(error))
     })
-    .get('/batchs/:id', (req, res, next) => {
+    .get('/batches/:id', (req, res, next) => {
       const id = req.params.id
 
       batch.findById(id)
@@ -27,42 +27,36 @@ module.exports = io => {
         })
         .catch((error) => next(error))
     })
-    .post('/batchs', authenticate, (req, res, next) => {
+    .post('/batches', authenticate, (req, res, next) => {
       const newbatch = {
         userId: req.account._id,
-        players: [{
-          userId: req.account._id,
-          pairs: []
-        }],
-        cards: utils.shuffle('✿✪♦✵♣♠♥✖'.repeat(2).split(''))
-          .map((symbol) => ({ visible: false, symbol }))
       }
 
       batch.create(newbatch)
         .then((batch) => {
           io.emit('action', {
-            type: 'batch_CREATED',
+            type: 'BATCH_CREATED',
             payload: batch
           })
           res.json(batch)
         })
         .catch((error) => next(error))
     })
-    .put('/batchs/:id', authenticate, (req, res, next) => {
+    .put('/batches/:id', authenticate, (req, res, next) => {
       const id = req.params.id
       const updatedbatch = req.body
 
       batch.findByIdAndUpdate(id, { $set: updatedbatch }, { new: true })
         .then((batch) => {
           io.emit('action', {
-            type: 'batch_UPDATED',
+            type: 'BATCH_UPDATED',
             payload: batch
           })
           res.json(batch)
         })
         .catch((error) => next(error))
     })
-    .patch('/batchs/:id', authenticate, (req, res, next) => {
+    .patch('/batches/:id', authenticate, (req, res, next) => {
       const id = req.params.id
       const patchForbatch = req.body
 
@@ -75,7 +69,7 @@ module.exports = io => {
           batch.findByIdAndUpdate(id, { $set: updatedbatch }, { new: true })
             .then((batch) => {
               io.emit('action', {
-                type: 'batch_UPDATED',
+                type: 'BATCH_UPDATED',
                 payload: batch
               })
               res.json(batch)
@@ -84,12 +78,12 @@ module.exports = io => {
         })
         .catch((error) => next(error))
     })
-    .delete('/batchs/:id', authenticate, (req, res, next) => {
+    .delete('/batches/:id', authenticate, (req, res, next) => {
       const id = req.params.id
       batch.findByIdAndRemove(id)
         .then(() => {
           io.emit('action', {
-            type: 'batch_REMOVED',
+            type: 'BATCH_REMOVED',
             payload: id
           })
           res.status = 200
