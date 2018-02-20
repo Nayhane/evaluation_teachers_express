@@ -26,7 +26,7 @@ module.exports = io => {
         })
         .catch((error) => next(error))
     })
-    .post('/students', (req, res, next) => {
+    .post('/students', authenticate, (req, res, next) => {
       const newStudent = {
         name: req.body.name,
         photo: req.body.photo,
