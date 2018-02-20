@@ -2,19 +2,11 @@
 const mongoose = require('../config/database')
 const { Schema } = mongoose
 
-
-const studentSchema = new Schema({
-  name: { type: String, required: true },
-  photo: { type: String, required: true },
-  evaluation: { type: String, default: 'green', required: true }
-});
-
-
 const batchSchema = new Schema({
-  bathcNumber: {type: Number, required: true},
-  startAt: { type: Date, default: Date.now },
-  endAt: { type: Date, default: Date.now },
-    // students: [studentSchema],
+  students: [{ type: Schema.Types.ObjectId, ref: 'students'}],
+  batchNumber: {type: Number, required: true},
+  startAt: { type: Date, default: Date.now, required: true },
+  endAt: { type: Date, default: Date.now, required: true },
 });
 
-module.exports = mongoose.model('batch', batchSchema)
+module.exports = mongoose.model('batches', batchSchema)
