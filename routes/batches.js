@@ -27,9 +27,12 @@ module.exports = io => {
         })
         .catch((error) => next(error))
     })
-    .post('/batches', authenticate, (req, res, next) => {
+    .post('/batches', (req, res, next) => {
       const newbatch = {
-        userId: req.account._id,
+        batchNumber: req.body.batchNumber,
+        students: req.body.students,
+        startAt: req.body.startAt,
+        endAt: req.body.endAt
       }
 
       Batch.create(newbatch)
@@ -58,15 +61,15 @@ module.exports = io => {
     })
     .patch('/batches/:id', authenticate, (req, res, next) => {
       const id = req.params.id
-      const patchForbatch = req.body
+      const patchForBatch = req.body
 
       Batch.findById(id)
         .then((batch) => {
           if (!batch) { return next() }
 
-          const updatedbatch = { ...batch, ...patchForbatch }
+          const updatedBatch = { ...batch, ...patchForBatch }
 
-          batch.findByIdAndUpdate(id, { $set: updatedbatch }, { new: true })
+          batch.findByIdAndUpdate(id, { $set: updatedBatch }, { new: true })
             .then((batch) => {
               io.emit('action', {
                 type: 'BATCH_UPDATED',
