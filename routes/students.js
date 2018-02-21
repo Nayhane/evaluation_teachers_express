@@ -19,13 +19,8 @@ const loadBatch = (req, res, next) => {
 const getStudents = (req, res, next) => {
   Promise.all(req.batch.students.map(studentId => Student.findById(studentId)))
     .then((students) => {
-      console.log(students)
-      req.students = req.batch.students.map((student) => {
-        return {
-          name: req.body.name,
-          photo: req.body.photo,
-        }
-      })
+      // Combine player data and user's name
+      req.students = students
       next()
     })
     .catch((error) => next(error))
@@ -40,9 +35,7 @@ module.exports = io => {
 
     .get('/students', (req, res, next) => {
       Student.find()
-        // Send the data in JSON format
         .then((students) => res.json(students))
-        // Throw a 500 error if something goes wrong
         .catch((error) => next(error))
     })
     .get('/batches/:id/students/:id', (req, res, next) => {
@@ -68,7 +61,7 @@ module.exports = io => {
         .then((student) => {
           const studentId = student._id
 
-          req.batch.students = [...req.batch.students, { studentId }]
+          req.batch.students = [studentId].concat(req.batch.students)
 
           req.batch.save()
             .then((batch) => {
