@@ -1,22 +1,51 @@
 // routes/students.js
 const router = require('express').Router()
 const passport = require('../config/auth')
-const { Student } = require('../models')
+const { Batch, Student } = require('../models')
 
 const authenticate = passport.authorize('jwt', { session: false })
 
+const loadBatch = (req, res, next) => {
+  const id = req.params.id
+
+  Batch.findById(id)
+    .then((batch) => {
+      req.batch = batch
+      next()
+    })
+    .catch((error) => next(error))
+}
+
+const getStudents = (req, res, next) => {
+  Promise.all(req.batch.students.map(studentId => Student.findById(studentId)))
+    .then((students) => {
+      console.log(students)
+      req.students = req.batch.students.map((student) => {
+        return {
+          name: req.body.name,
+          photo: req.body.photo,
+        }
+      })
+      next()
+    })
+    .catch((error) => next(error))
+}
+
 module.exports = io => {
   router
+    .get('/batches/:id/students', loadBatch, getStudents, (req, res, next) => {
+      if (!req.batch || !req.students) { return next() }
+      res.json(req.students)
+    })
+
     .get('/students', (req, res, next) => {
       Student.find()
-        // Newest students first
-        .sort({ startedAt: -1 })
         // Send the data in JSON format
         .then((students) => res.json(students))
         // Throw a 500 error if something goes wrong
         .catch((error) => next(error))
     })
-    .get('/students/:id', (req, res, next) => {
+    .get('/batches/:id/students/:id', (req, res, next) => {
       const id = req.params.id
 
       Student.findById(id)
@@ -26,14 +55,28 @@ module.exports = io => {
         })
         .catch((error) => next(error))
     })
-    .post('/students', authenticate, (req, res, next) => {
+    .post('/batches/:id/students', loadBatch, (req, res, next) => {
+      if (!req.batch) { return next() }
+
       const newStudent = {
         name: req.body.name,
         photo: req.body.photo,
+        batch_id: req.batch._id,
       }
 
       Student.create(newStudent)
         .then((student) => {
+          const studentId = student._id
+
+          req.batch.students = [...req.batch.students, { studentId }]
+
+          req.batch.save()
+            .then((batch) => {
+              req.batch = batch
+              next()
+            })
+            .catch((error) => next(error))
+
           io.emit('action', {
             type: 'STUDENT_CREATED',
             payload: student
@@ -41,58 +84,46 @@ module.exports = io => {
           res.json(student)
         })
         .catch((error) => next(error))
-    })
-    .put('/students/:id', authenticate, (req, res, next) => {
-      const id = req.params.id
-      const updatedStudent = req.body
+    },
 
-      Student.findByIdAndUpdate(id, { $set: updatedStudent }, { new: true })
-        .then((student) => {
-          io.emit('action', {
-            type: 'STUDENT_UPDATED',
-            payload: student
-          })
-          res.json(student)
+    getStudents,
+
+    (req, res, next) => {
+      io.emit('action', {
+        type: 'BATCH_STUDENT_UPDATED',
+        payload: {
+          batch: req.batch,
+          students: req.students
+        }
+      })
+      res.json(req.students)
+    })
+
+    .delete('/batch/:id/students', authenticate, (req, res, next) => {
+      if (!req.batch) { return next() }
+
+      const studentId = req.account._id
+      req.batch.students = req.batch.students.filter((s) => studentId.toString())
+      req.batch.save()
+        .then((batch) => {
+          req.batch = batch
+          next()
         })
         .catch((error) => next(error))
-    })
-    .patch('/students/:id', authenticate, (req, res, next) => {
-      const id = req.params.id
-      const patchForStudent = req.body
 
-      Student.findById(id)
-        .then((student) => {
-          if (!student) { return next() }
+    },
 
-          const updatedStudent = { ...student, ...patchForStudent }
+    getStudents,
 
-          Student.findByIdAndUpdate(id, { $set: updatedStudent }, { new: true })
-            .then((student) => {
-              io.emit('action', {
-                type: 'STUDENT_UPDATED',
-                payload: student
-              })
-              res.json(student)
-            })
-            .catch((error) => next(error))
-        })
-        .catch((error) => next(error))
-    })
-    .delete('/students/:id', authenticate, (req, res, next) => {
-      const id = req.params.id
-      Student.findByIdAndRemove(id)
-        .then(() => {
-          io.emit('action', {
-            type: 'STUDENT_REMOVED',
-            payload: id
-          })
-          res.status = 200
-          res.json({
-            message: 'Removed',
-            _id: id
-          })
-        })
-        .catch((error) => next(error))
+    (req, res, next) => {
+      io.emit('action', {
+        type: 'BATCH_STUDENT_UPDATED',
+        payload: {
+          batch: req.batch,
+          student: req.students
+        }
+      })
+      res.json(req.students)
     })
 
   return router
