@@ -19,7 +19,6 @@ const loadBatch = (req, res, next) => {
 const getStudents = (req, res, next) => {
   Promise.all(req.batch.students.map(studentId => Student.findById(studentId)))
     .then((students) => {
-      // Combine player data and user's name
       req.students = students
       next()
     })
