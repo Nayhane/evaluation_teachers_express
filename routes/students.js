@@ -2,6 +2,7 @@
 const router = require('express').Router()
 const passport = require('../config/auth')
 const { Batch, Student } = require('../models')
+const getQuestionStudent = require('../lib/utils')
 
 const authenticate = passport.authorize('jwt', { session: false })
 
@@ -103,6 +104,15 @@ module.exports = io => {
         })
         .catch((error) => next(error))
     })
+
+
+    .get('/batches/:id/question/', loadBatch, getStudents, (req, res, next) => {
+      const students = req.students
+      const studentQ = getQuestionStudent(students)
+      res.json(studentQ)
+    })
+
+
 
     .delete('/batches/:id/students', authenticate, (req, res, next) => {
       if (!req.batch) { return next() }
