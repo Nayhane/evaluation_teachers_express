@@ -70,7 +70,7 @@ module.exports = io => {
             .catch((error) => next(error))
 
           io.emit('action', {
-            type: 'STUDENT_CREATED',
+            type: 'BATCH_STUDENTS_UPDATED',
             payload: student
           })
           res.json(student)
@@ -82,7 +82,7 @@ module.exports = io => {
 
     (req, res, next) => {
       io.emit('action', {
-        type: 'BATCH_STUDENT_UPDATED',
+        type: 'BATCH_STUDENTS_UPDATED',
         payload: {
           batch: req.batch,
           students: req.students
@@ -91,7 +91,7 @@ module.exports = io => {
       res.json(req.students)
     })
 
-    .delete('/batch/:id/students', authenticate, (req, res, next) => {
+    .delete('/batches/:id/students', authenticate, (req, res, next) => {
       if (!req.batch) { return next() }
 
       const studentId = req.account._id
@@ -109,7 +109,7 @@ module.exports = io => {
 
     (req, res, next) => {
       io.emit('action', {
-        type: 'BATCH_STUDENT_UPDATED',
+        type: 'BATCH_STUDENTS_UPDATED',
         payload: {
           batch: req.batch,
           student: req.students

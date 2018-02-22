@@ -53,6 +53,7 @@ module.exports = io => {
       const newEvaluation = {
         color: req.body.color,
         remark: req.body.remark,
+        date: req.body.date,
         student_id: req.student._id,
       }
 
