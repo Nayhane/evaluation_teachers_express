@@ -91,6 +91,7 @@ module.exports = io => {
       })
       res.json(req.students)
     })
+
     .put('/students/:id', (req, res, next) => {
       const id = req.params.id
 
@@ -112,34 +113,6 @@ module.exports = io => {
       res.json(studentQ)
     })
 
-
-
-    .delete('/batches/:id/students', authenticate, (req, res, next) => {
-      if (!req.batch) { return next() }
-
-      const studentId = req.account._id
-      req.batch.students = req.batch.students.filter((s) => studentId.toString())
-      req.batch.save()
-        .then((batch) => {
-          req.batch = batch
-          next()
-        })
-        .catch((error) => next(error))
-
-    },
-
-    getStudents,
-
-    (req, res, next) => {
-      io.emit('action', {
-        type: 'BATCH_STUDENTS_UPDATED',
-        payload: {
-          batch: req.batch,
-          student: req.students
-        }
-      })
-      res.json(req.students)
-    })
 
   return router
 }

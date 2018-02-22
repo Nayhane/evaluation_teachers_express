@@ -17,6 +17,7 @@ module.exports = io => {
         // Throw a 500 error if something goes wrong
         .catch((error) => next(error))
     })
+
     .get('/batches/:id', (req, res, next) => {
       const id = req.params.id
 
@@ -27,6 +28,7 @@ module.exports = io => {
         })
         .catch((error) => next(error))
     })
+    
     .post('/batches', (req, res, next) => {
       const newbatch = {
         batchNumber: req.body.batchNumber,
@@ -44,6 +46,7 @@ module.exports = io => {
         })
         .catch((error) => next(error))
     })
+
     .put('/batches/:id', authenticate, (req, res, next) => {
       const id = req.params.id
       const updatedbatch = req.body
@@ -58,6 +61,7 @@ module.exports = io => {
         })
         .catch((error) => next(error))
     })
+
     .patch('/batches/:id', authenticate, (req, res, next) => {
       const id = req.params.id
       const patchForBatch = req.body
@@ -80,6 +84,7 @@ module.exports = io => {
         })
         .catch((error) => next(error))
     })
+
     .delete('/batches/:id', authenticate, (req, res, next) => {
       const id = req.params.id
       Batch.findByIdAndRemove(id)
