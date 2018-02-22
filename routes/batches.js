@@ -30,7 +30,6 @@ module.exports = io => {
     .post('/batches', (req, res, next) => {
       const newbatch = {
         batchNumber: req.body.batchNumber,
-        students: req.body.students,
         startAt: req.body.startAt,
         endAt: req.body.endAt
       }
