@@ -6,6 +6,7 @@ const studentSchema = new Schema({
   name: { type: String, required: true },
   photo: { type: String, required: true },
   batch_id: { type: String, required: true },
+  current_color: { type: String },
   evaluations: [{ type: Schema.Types.ObjectId, ref: 'evaluations'}],
 });
 

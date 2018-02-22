@@ -90,6 +90,19 @@ module.exports = io => {
       })
       res.json(req.students)
     })
+    .put('/students/:id', (req, res, next) => {
+      const id = req.params.id
+
+      Student.findByIdAndUpdate(id, { $set: req.body}, { new: true })
+        .then((student) => {
+          io.emit('action', {
+            type: 'STUDENT_UPDATED',
+            payload: student
+          })
+          res.json(student)
+        })
+        .catch((error) => next(error))
+    })
 
     .delete('/batches/:id/students', authenticate, (req, res, next) => {
       if (!req.batch) { return next() }
