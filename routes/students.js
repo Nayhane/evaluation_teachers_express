@@ -91,6 +91,7 @@ module.exports = io => {
       })
       res.json(req.students)
     })
+
     .put('/students/:id', (req, res, next) => {
       const id = req.params.id
 
@@ -111,7 +112,6 @@ module.exports = io => {
       const studentQ = getQuestionStudent(students)
       res.json(studentQ)
     })
-
 
 
     .delete('/batches/:id/students', authenticate, (req, res, next) => {
