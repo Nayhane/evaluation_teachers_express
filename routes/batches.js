@@ -8,7 +8,7 @@ const authenticate = passport.authorize('jwt', { session: false })
 
 module.exports = io => {
   router
-    .get('/batches', (req, res, next) => {
+    .get('/batches', authenticate, (req, res, next) => {
       Batch.find()
         // Newest batches first
         .sort({ startedAt: -1 })
@@ -18,7 +18,7 @@ module.exports = io => {
         .catch((error) => next(error))
     })
 
-    .get('/batches/:id', (req, res, next) => {
+    .get('/batches/:id', authenticate, (req, res, next) => {
       const id = req.params.id
 
       Batch.findById(id)
@@ -28,8 +28,8 @@ module.exports = io => {
         })
         .catch((error) => next(error))
     })
-    
-    .post('/batches', (req, res, next) => {
+
+    .post('/batches', authenticate, (req, res, next) => {
       const newbatch = {
         batchNumber: req.body.batchNumber,
         startAt: req.body.startAt,
@@ -38,10 +38,10 @@ module.exports = io => {
 
       Batch.create(newbatch)
         .then((batch) => {
-          io.emit('action', {
-            type: 'BATCH_CREATED',
-            payload: batch
-          })
+          // io.emit('action', {
+          //   type: 'BATCH_CREATED',
+          //   payload: batch
+          // })
           res.json(batch)
         })
         .catch((error) => next(error))
